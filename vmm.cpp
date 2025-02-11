@@ -4,11 +4,9 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
-#include <queue>
 #include <unordered_map>
 
-std::queue<int> frame_queue; // Usado para FIFO
-std::deque<int> lru_queue;   // Usado para LRU
+std::deque<int> deque;   // Usado para FIFO|LRU
 
 const int PAGE_SIZE = 256;
 int NUM_FRAMES;
@@ -92,17 +90,17 @@ int check_page_table(int page_number) {
 int handle_page_fault_fifo(int page_number) {
   int frame_number;
 
-  if (frame_queue.size() >= NUM_FRAMES) {
+  if (deque.size() >= NUM_FRAMES) {
     // Memória física está cheia, substitui o frame mais antigo
-    frame_number = frame_queue.front();
-    frame_queue.pop();
+    frame_number = deque.front();
+    deque.pop_front();
 
     // Invalida a página substituída na tabela de páginas
     for (auto &entry : PageTable)
       if (entry.second.frame_number == frame_number)
         entry.second.valid = false;
   } else // Atribui um novo frame
-    frame_number = frame_queue.size();
+    frame_number = deque.size();
 
   // Lê a página do arquivo BACKING_STORE.bin
   FILE *backing_store = fopen("BACKING_STORE.bin", "rb");
@@ -114,7 +112,7 @@ int handle_page_fault_fifo(int page_number) {
   PageTable[page_number] = {frame_number, true};
 
   // Adiciona o frame à fila
-  frame_queue.push(frame_number);
+  deque.push_back(frame_number);
   return frame_number;
 }
 
@@ -122,17 +120,17 @@ int handle_page_fault_fifo(int page_number) {
 int handle_page_fault_lru(int page_number) {
   int frame_number;
 
-  if (lru_queue.size() >= NUM_FRAMES) {
+  if (deque.size() >= NUM_FRAMES) {
     // Memória física está cheia, substitui o frame menos recentemente usado
-    frame_number = lru_queue.front();
-    lru_queue.pop_front();
+    frame_number = deque.front();
+    deque.pop_front();
 
     // Invalida a página substituída na tabela de páginas
     for (auto &entry : PageTable)
       if (entry.second.frame_number == frame_number)
         entry.second.valid = false;
   } else // Atribui um novo frame
-    frame_number = lru_queue.size();
+    frame_number = deque.size();
 
   // Lê a página do arquivo BACKING_STORE.bin
   FILE *backing_store = fopen("BACKING_STORE.bin", "rb");
@@ -144,7 +142,7 @@ int handle_page_fault_lru(int page_number) {
   PageTable[page_number] = {frame_number, true};
 
   // Adiciona o frame ao final da fila LRU
-  lru_queue.push_back(frame_number);
+  deque.push_back(frame_number);
   return frame_number;
 }
 
@@ -168,6 +166,7 @@ void translate_address(int logical_address,
         frame_number = handle_page_fault_lru(page_number);
       page_faults++; // Incrementa o contador de page faults
     }
+    // Atualiza a ordem no uso no FIFO, se a TLB já está na memória
     if (TLB.size() >= TLB_SIZE)
       TLB.pop_front();
     TLB.push_back({page_number, frame_number});
@@ -185,10 +184,10 @@ void translate_address(int logical_address,
   }
   // Atualiza a ordem de uso no LRU, se a página já está na memória
   if (replacement_method == "LRU" && frame_number != -1) {
-    auto it = std::find(lru_queue.begin(), lru_queue.end(), frame_number);
-    if (it != lru_queue.end()) {
-      lru_queue.erase(it);               // Remove o frame da posição atual
-      lru_queue.push_back(frame_number); // Adiciona ao final (mais recente)
+    auto it = std::find(deque.begin(), deque.end(), frame_number);
+    if (it != deque.end()) {
+      deque.erase(it);               // Remove o frame da posição atual
+      deque.push_back(frame_number); // Adiciona ao final (mais recente)
     }
   }
 

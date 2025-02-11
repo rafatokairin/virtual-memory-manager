@@ -162,9 +162,9 @@ void translate_address(int logical_address,
     frame_number = check_page_table(page_number);
     if (frame_number == -1) {
       // Escolhe o método de substituição com base no argumento
-      if (replacement_method == "fifo")
+      if (replacement_method == "FIFO")
         frame_number = handle_page_fault_fifo(page_number);
-      else if (replacement_method == "lru")
+      else if (replacement_method == "LRU")
         frame_number = handle_page_fault_lru(page_number);
       page_faults++; // Incrementa o contador de page faults
     }
@@ -173,7 +173,7 @@ void translate_address(int logical_address,
     TLB.push_back({page_number, frame_number});
   } else {
     // Atualiza a ordem de uso no LRU, se a TLB já está na memória
-    if (replacement_method == "lru" && frame_number != -1) {
+    if (replacement_method == "LRU" && frame_number != -1) {
       auto it = std::find(TLB.begin(), TLB.end(), frame_number);
       if (it != TLB.end()) {
         TLB.erase(it); // Remove o frame da posição atual
@@ -184,7 +184,7 @@ void translate_address(int logical_address,
     TLB_hits++; // Incrementa o contador de TLB hits
   }
   // Atualiza a ordem de uso no LRU, se a página já está na memória
-  if (replacement_method == "lru" && frame_number != -1) {
+  if (replacement_method == "LRU" && frame_number != -1) {
     auto it = std::find(lru_queue.begin(), lru_queue.end(), frame_number);
     if (it != lru_queue.end()) {
       lru_queue.erase(it);               // Remove o frame da posição atual
@@ -212,8 +212,8 @@ void display_statistics(std::ofstream &outfile) {
 
 int main(int argc, char *argv[]) {
   if (argc != 4) {
-    std::cerr << "Usage: ./vmm addresses.txt <frames> <fifo|lru>" << std::endl;
-    std::cerr << "Replacement methods: fifo, lru" << std::endl;
+    std::cerr << "Usage: ./vmm addresses.txt <frames> <FIFO|LRU>" << std::endl;
+    std::cerr << "Replacement methods: FIFO, LRU" << std::endl;
     return 1;
   }
 
@@ -221,8 +221,8 @@ int main(int argc, char *argv[]) {
   std::string replacement_method = argv[3];
 
   // Verifica se o método de substituição é válido
-  if (replacement_method != "fifo" && replacement_method != "lru") {
-    std::cerr << "Invalid replacement method. Use 'fifo' or 'lru'."
+  if (replacement_method != "FIFO" && replacement_method != "LRU") {
+    std::cerr << "Invalid replacement method. Use 'FIFO' or 'LRU'."
               << std::endl;
     return 1;
   }

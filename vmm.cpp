@@ -7,11 +7,9 @@
 #include <unordered_map>
 
 std::deque<int> deque; // Usado para FIFO|LRU
-
 const int PAGE_SIZE = 256;
 int NUM_FRAMES;
 const int TLB_SIZE = 16;
-
 int page_faults = 0;      // Contador de page faults
 int TLB_hits = 0;         // Contador de TLB hits
 int total_references = 0; // Total de referências de endereço
@@ -177,6 +175,20 @@ void display_statistics(std::ofstream &outfile) {
   outfile << "TLB Hit Rate: " << TLB_hit_rate << "%\n";
 }
 
+// Inicializa a PageTable com entradas inválidas
+void initialize_page_table() {
+  for (int i = 0; i < PAGE_SIZE; ++i) {
+    PageTable[i] = {-1, false}; // Frame número -1 e válido como false
+  }
+}
+
+// Inicializa a TLB com entradas inválidas
+void initialize_TLB() {
+  for (int i = 0; i < TLB_SIZE; ++i) {
+    TLB.push_back({-1, -1}); // Adiciona entradas inválidas
+  }
+}
+
 int main(int argc, char *argv[]) {
   if (argc != 4) {
     std::cerr << "Usage: ./vmm addresses.txt <frames> <FIFO|LRU>" << std::endl;
@@ -194,6 +206,11 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
+  // Inicializa a PageTable com 256 entradas
+  initialize_page_table();
+  // Inicializa a TLB com entradas inválidas
+  initialize_TLB();
+
   // Aloca memória dinamicamente
   PhysicalMemory = new char *[NUM_FRAMES];
   for (int i = 0; i < NUM_FRAMES; i++)
@@ -202,10 +219,8 @@ int main(int argc, char *argv[]) {
   // Abre o arquivo addresses.txt
   std::ifstream address_file(argv[1]);
   std::string line;
-
   // Abre o arquivo de saída
   std::ofstream outfile("correct.txt");
-
   while (std::getline(address_file, line)) {
     // Verifica se a linha é "PageTable" ou "TLB"
     if (line == "PageTable")
@@ -218,12 +233,10 @@ int main(int argc, char *argv[]) {
       translate_address(logical_address, replacement_method, outfile);
     }
   }
-
+  // Fecha o arquivo addresses.txt
   address_file.close();
-
   // Exibe estatísticas ao final da execução
   display_statistics(outfile);
-
   // Fecha o arquivo de saída
   outfile.close();
 

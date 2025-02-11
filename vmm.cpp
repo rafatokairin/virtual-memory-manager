@@ -6,7 +6,7 @@
 #include <iostream>
 #include <unordered_map>
 
-std::deque<int> deque;   // Usado para FIFO|LRU
+std::deque<int> deque; // Usado para FIFO|LRU
 
 const int PAGE_SIZE = 256;
 int NUM_FRAMES;
@@ -19,7 +19,8 @@ int total_references = 0; // Total de referências de endereço
 struct TLBEntry {
   int page_number;
   int frame_number;
-  // Operador para comparação de TLBEntry.frame_number com frame_number de std::find
+  // Operador para comparação de TLBEntry.frame_number com frame_number de
+  // std::find
   bool operator==(int frame) const { return frame_number == frame; }
 };
 
@@ -86,8 +87,8 @@ int check_page_table(int page_number) {
   return -1; // Page fault
 }
 
-// Função para substituição FIFO
-int handle_page_fault_fifo(int page_number) {
+// Função para substituição de página
+int handle_page_fault(int page_number) {
   int frame_number;
 
   if (deque.size() >= NUM_FRAMES) {
@@ -116,36 +117,6 @@ int handle_page_fault_fifo(int page_number) {
   return frame_number;
 }
 
-// Função para substituição LRU
-int handle_page_fault_lru(int page_number) {
-  int frame_number;
-
-  if (deque.size() >= NUM_FRAMES) {
-    // Memória física está cheia, substitui o frame menos recentemente usado
-    frame_number = deque.front();
-    deque.pop_front();
-
-    // Invalida a página substituída na tabela de páginas
-    for (auto &entry : PageTable)
-      if (entry.second.frame_number == frame_number)
-        entry.second.valid = false;
-  } else // Atribui um novo frame
-    frame_number = deque.size();
-
-  // Lê a página do arquivo BACKING_STORE.bin
-  FILE *backing_store = fopen("BACKING_STORE.bin", "rb");
-  fseek(backing_store, page_number * PAGE_SIZE, SEEK_SET);
-  fread(PhysicalMemory[frame_number], sizeof(char), PAGE_SIZE, backing_store);
-  fclose(backing_store);
-
-  // Atualiza a tabela de páginas
-  PageTable[page_number] = {frame_number, true};
-
-  // Adiciona o frame ao final da fila LRU
-  deque.push_back(frame_number);
-  return frame_number;
-}
-
 // Função para traduzir endereços lógicos em físicos
 void translate_address(int logical_address,
                        const std::string &replacement_method,
@@ -160,10 +131,7 @@ void translate_address(int logical_address,
     frame_number = check_page_table(page_number);
     if (frame_number == -1) {
       // Escolhe o método de substituição com base no argumento
-      if (replacement_method == "FIFO")
-        frame_number = handle_page_fault_fifo(page_number);
-      else if (replacement_method == "LRU")
-        frame_number = handle_page_fault_lru(page_number);
+      frame_number = handle_page_fault(page_number);
       page_faults++; // Incrementa o contador de page faults
     }
     // Atualiza a ordem no uso no FIFO, se a TLB já está na memória

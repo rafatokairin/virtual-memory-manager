@@ -21,6 +21,8 @@ int total_references = 0; // Total de referências de endereço
 struct TLBEntry {
   int page_number;
   int frame_number;
+  // Operador para comparação de TLBEntry.frame_number com frame_number de std::find
+  bool operator==(int frame) const { return frame_number == frame; }
 };
 
 struct PageTableEntry {
@@ -169,9 +171,18 @@ void translate_address(int logical_address,
     if (TLB.size() >= TLB_SIZE)
       TLB.pop_front();
     TLB.push_back({page_number, frame_number});
-  } else
+  } else {
+    // Atualiza a ordem de uso no LRU, se a TLB já está na memória
+    if (replacement_method == "lru" && frame_number != -1) {
+      auto it = std::find(TLB.begin(), TLB.end(), frame_number);
+      if (it != TLB.end()) {
+        TLB.erase(it); // Remove o frame da posição atual
+        TLB.push_back(
+            {page_number, frame_number}); // Adiciona ao final (mais recente)
+      }
+    }
     TLB_hits++; // Incrementa o contador de TLB hits
-
+  }
   // Atualiza a ordem de uso no LRU, se a página já está na memória
   if (replacement_method == "lru" && frame_number != -1) {
     auto it = std::find(lru_queue.begin(), lru_queue.end(), frame_number);

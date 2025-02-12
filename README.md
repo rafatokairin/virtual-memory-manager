@@ -1,6 +1,5 @@
 # Simulador de Gerenciamento de Memória Virtual
 
-```
 Este programa simula a tradução de endereços lógicos para físicos, utilizando uma TLB e tabela de páginas.
 
 ## Compilação

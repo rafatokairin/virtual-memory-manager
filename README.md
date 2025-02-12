@@ -1,6 +1,6 @@
 # Simulador de Gerenciamento de Memória Virtual
 
-Problema retirado do capítulo 9 (Designing a Virtual Memory Manager) do livro Operating System Concepts, de Abraham Silberschatz e James Peterson. 
+Problema retirado do capítulo 9 (Designing a Virtual Memory Manager) do livro *Operating System Concepts, de Abraham Silberschatz e James Peterson*. 
 
 - Este programa simula a tradução de endereços lógicos para físicos, utilizando uma TLB e tabela de páginas. 
 

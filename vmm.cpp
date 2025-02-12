@@ -8,7 +8,7 @@
 #include <string>
 #include <unordered_map>
 
-std::deque<int> deque; // Usado para FIFO|LRU
+std::deque<int> deque; // Fila duplamente encadeada usada para FIFO|LRU
 std::size_t NUM_FRAMES;
 const int PAGE_SIZE = 256;
 const int TLB_SIZE = 16;
@@ -226,7 +226,6 @@ int main(int argc, char *argv[]) {
   std::string filename = argv[1];
   NUM_FRAMES = std::atoi(argv[2]);
   std::string replacement_method = argv[3];
-
   // Verifica se o método de substituição é válido
   if (replacement_method != "FIFO" && replacement_method != "LRU") {
     std::cerr << "Invalid replacement method. Use 'FIFO' or 'LRU'."

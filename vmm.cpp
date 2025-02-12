@@ -17,8 +17,8 @@ int total_references = 0; // Total de referências de endereço
 struct TLBEntry {
   int page_number;
   int frame_number;
-  // Operador para comparação de TLBEntry.frame_number com frame_number de
-  // std::find
+  /* Operador para comparação de TLBEntry.frame_number com frame_number de
+   * std::find */
   bool operator==(int frame) const { return frame_number == frame; }
 };
 
@@ -192,7 +192,6 @@ void initialize_TLB() {
 int main(int argc, char *argv[]) {
   if (argc != 4) {
     std::cerr << "Usage: ./vmm addresses.txt <frames> <FIFO|LRU>" << std::endl;
-    std::cerr << "Replacement methods: FIFO, LRU" << std::endl;
     return 1;
   }
 
@@ -206,10 +205,10 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  // Inicializa a PageTable com 256 entradas
-  initialize_page_table();
-  // Inicializa a TLB com entradas inválidas
-  initialize_TLB();
+  /* Inicializa a PageTable e TLB com entradas inválidas (caso queira visualizar
+   * em correct.txt todas as páginas de PageTable ou TLB) */
+  // initialize_page_table();
+  // initialize_TLB();
 
   // Aloca memória dinamicamente
   PhysicalMemory = new char *[NUM_FRAMES];

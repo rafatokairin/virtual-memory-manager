@@ -5,6 +5,7 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <string>
 #include <unordered_map>
 
 std::deque<int> deque; // Usado para FIFO|LRU
@@ -190,34 +191,9 @@ void initialize_TLB() {
   }
 }
 
-int main(int argc, char *argv[]) {
-  if (argc != 4) {
-    std::cerr << "Usage: ./vmm addresses.txt <frames> <FIFO|LRU>" << std::endl;
-    return 1;
-  }
-
-  NUM_FRAMES = std::atoi(argv[2]);
-  std::string replacement_method = argv[3];
-
-  // Verifica se o método de substituição é válido
-  if (replacement_method != "FIFO" && replacement_method != "LRU") {
-    std::cerr << "Invalid replacement method. Use 'FIFO' or 'LRU'."
-              << std::endl;
-    return 1;
-  }
-
-  /* Inicializa a PageTable e TLB com entradas inválidas (caso queira visualizar
-   * em correct.txt todas as páginas de PageTable ou TLB) */
-  // initialize_page_table();
-  // initialize_TLB();
-
-  // Aloca memória dinamicamente
-  PhysicalMemory = new char *[NUM_FRAMES];
-  for (std::size_t i = 0; i < NUM_FRAMES; i++)
-    PhysicalMemory[i] = new char[PAGE_SIZE];
-
+void process_file(std::string filename, std::string replacement_method) {
   // Abre o arquivo addresses.txt
-  std::ifstream address_file(argv[1]);
+  std::ifstream address_file(filename);
   std::string line;
   // Abre o arquivo de saída
   std::ofstream outfile("correct.txt");
@@ -239,6 +215,37 @@ int main(int argc, char *argv[]) {
   display_statistics(outfile);
   // Fecha o arquivo de saída
   outfile.close();
+}
+
+int main(int argc, char *argv[]) {
+  if (argc != 4) {
+    std::cerr << "Usage: ./vmm addresses.txt <frames> <FIFO|LRU>" << std::endl;
+    return 1;
+  }
+
+  std::string filename = argv[1];
+  NUM_FRAMES = std::atoi(argv[2]);
+  std::string replacement_method = argv[3];
+
+  // Verifica se o método de substituição é válido
+  if (replacement_method != "FIFO" && replacement_method != "LRU") {
+    std::cerr << "Invalid replacement method. Use 'FIFO' or 'LRU'."
+              << std::endl;
+    return 1;
+  }
+
+  /* Inicializa a PageTable e TLB com entradas inválidas (caso queira visualizar
+   * em correct.txt todas as páginas de PageTable ou TLB) */
+  // initialize_page_table();
+  // initialize_TLB();
+
+  // Aloca memória dinamicamente
+  PhysicalMemory = new char *[NUM_FRAMES];
+  for (std::size_t i = 0; i < NUM_FRAMES; i++)
+    PhysicalMemory[i] = new char[PAGE_SIZE];
+  
+  // Processa a leitura e escrita dos arquivos .txt
+  process_file(filename, replacement_method);
 
   // Libera a memória alocada
   for (std::size_t i = 0; i < NUM_FRAMES; i++)

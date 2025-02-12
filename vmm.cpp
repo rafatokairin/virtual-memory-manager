@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cstddef>
 #include <cstdlib>
 #include <deque>
 #include <fstream>
@@ -7,8 +8,8 @@
 #include <unordered_map>
 
 std::deque<int> deque; // Usado para FIFO|LRU
+std::size_t NUM_FRAMES;
 const int PAGE_SIZE = 256;
-int NUM_FRAMES;
 const int TLB_SIZE = 16;
 int page_faults = 0;      // Contador de page faults
 int TLB_hits = 0;         // Contador de TLB hits
@@ -212,7 +213,7 @@ int main(int argc, char *argv[]) {
 
   // Aloca memória dinamicamente
   PhysicalMemory = new char *[NUM_FRAMES];
-  for (int i = 0; i < NUM_FRAMES; i++)
+  for (std::size_t i = 0; i < NUM_FRAMES; i++)
     PhysicalMemory[i] = new char[PAGE_SIZE];
 
   // Abre o arquivo addresses.txt
@@ -240,7 +241,7 @@ int main(int argc, char *argv[]) {
   outfile.close();
 
   // Libera a memória alocada
-  for (int i = 0; i < NUM_FRAMES; i++)
+  for (std::size_t i = 0; i < NUM_FRAMES; i++)
     delete[] PhysicalMemory[i];
   delete[] PhysicalMemory;
   return 0;

@@ -7,7 +7,6 @@
 #include <unordered_map>
 
 std::deque<TLBEntry> TLB;
-
 std::unordered_map<int, PageTableEntry> PageTable;
 
 // Função para imprimir a tabela de páginas

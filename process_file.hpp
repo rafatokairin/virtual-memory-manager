@@ -22,7 +22,6 @@ extern std::unordered_map<int, PageTableEntry> PageTable;
 extern int page_faults;
 extern int TLB_hits;
 extern int total_references;
-
 const int PAGE_SIZE = 256;
 const int TLB_SIZE = 16;
 

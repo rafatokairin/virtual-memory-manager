@@ -1,6 +1,5 @@
 #ifndef PROCESS_FILE_HPP
 #define PROCESS_FILE_HPP
-
 #include <cstdlib>
 #include <deque>
 #include <fstream>

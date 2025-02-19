@@ -1,67 +1,19 @@
+#include "process_file.hpp"
 #include <algorithm>
 #include <cstddef>
 #include <cstdlib>
 #include <deque>
 #include <fstream>
-#include <iomanip>
 #include <iostream>
 #include <string>
 #include <unordered_map>
 
 std::deque<int> deque; // Fila duplamente encadeada usada para FIFO|LRU
 std::size_t NUM_FRAMES;
-const int PAGE_SIZE = 256;
-const int TLB_SIZE = 16;
 int page_faults = 0;      // Contador de page faults
 int TLB_hits = 0;         // Contador de TLB hits
 int total_references = 0; // Total de referências de endereço
-
-struct TLBEntry {
-  int page_number;
-  int frame_number;
-  /* Operador para comparação de TLBEntry.frame_number com frame_number de
-   * std::find */
-  bool operator==(int frame) const { return frame_number == frame; }
-};
-
-struct PageTableEntry {
-  int frame_number;
-  bool valid;
-};
-
-std::deque<TLBEntry> TLB;
-std::unordered_map<int, PageTableEntry> PageTable;
 char **PhysicalMemory;
-
-// Função para imprimir a tabela de páginas
-void print_page_table(std::ofstream &outfile) {
-  outfile << "########################\n";
-  outfile << "Page - Frame - Valid Bit\n";
-  for (const auto &entry : PageTable) {
-    int page_number = entry.first;
-    int frame_number = entry.second.frame_number;
-    bool valid = entry.second.valid;
-
-    outfile << std::setw(4) << page_number << " - " << std::setw(5)
-            << frame_number << " - " << std::setw(9)
-            << (valid ? "Valid" : "Invalid") << std::endl;
-  }
-  outfile << "########################\n";
-}
-
-// Função para imprimir a TLB
-void print_TLB(std::ofstream &outfile) {
-  outfile << "\n************\n";
-  outfile << "Page - Frame\n";
-  for (const auto &entry : TLB) {
-    int page_number = entry.page_number;
-    int frame_number = entry.frame_number;
-
-    outfile << std::setw(4) << page_number << " - " << std::setw(5)
-            << frame_number << std::endl;
-  }
-  outfile << "************\n";
-}
 
 // Extrai o número da página de um endereço lógico
 int extract_page_number(int logical_address) {
@@ -167,30 +119,6 @@ void translate_address(int logical_address,
           << " Value: " << (int)value << std::endl;
 }
 
-// Exibe estatísticas ao final da execução
-void display_statistics(std::ofstream &outfile) {
-  float page_fault_rate = (float)page_faults / total_references * 100;
-  float TLB_hit_rate = (float)TLB_hits / total_references * 100;
-
-  outfile << "\nStatistics:\n";
-  outfile << "Page-Fault Rate: " << page_fault_rate << "%\n";
-  outfile << "TLB Hit Rate: " << TLB_hit_rate << "%\n";
-}
-
-// Inicializa a PageTable com entradas inválidas
-void initialize_page_table() {
-  for (int i = 0; i < PAGE_SIZE; ++i) {
-    PageTable[i] = {-1, false}; // Frame número -1 e válido como false
-  }
-}
-
-// Inicializa a TLB com entradas inválidas
-void initialize_TLB() {
-  for (int i = 0; i < TLB_SIZE; ++i) {
-    TLB.push_back({-1, -1}); // Adiciona entradas inválidas
-  }
-}
-
 void process_file(std::string filename, std::string replacement_method) {
   // Abre o arquivo addresses.txt
   std::ifstream address_file(filename);
@@ -242,7 +170,7 @@ int main(int argc, char *argv[]) {
   PhysicalMemory = new char *[NUM_FRAMES];
   for (std::size_t i = 0; i < NUM_FRAMES; i++)
     PhysicalMemory[i] = new char[PAGE_SIZE];
-  
+
   // Processa a leitura e escrita dos arquivos .txt
   process_file(filename, replacement_method);
 

@@ -34,17 +34,19 @@ int check_TLB(int page_number) {
 // Verifica se a página está na tabela de páginas
 int check_page_table(int page_number) {
   if (PageTable.find(page_number) != PageTable.end() &&
-      PageTable[page_number].valid)
+      PageTable[page_number].valid ==
+          true) // Checa se está na PageTable (Bit de Validade == true)
     return PageTable[page_number].frame_number;
-  return -1; // Page fault
+  return -1; // Page fault (Bit de Validade == false)
 }
 
 // Função para substituição de página
 int handle_page_fault(int page_number) {
   int frame_number;
 
+  // Verifica se memória física está cheia
   if (deque.size() >= NUM_FRAMES) {
-    // Memória física está cheia, substitui o frame mais antigo
+    // Memória física está cheia, retira frame mais antigo do deque
     frame_number = deque.front();
     deque.pop_front();
 
@@ -81,7 +83,7 @@ void translate_address(int logical_address,
   int frame_number = check_TLB(page_number);
   if (frame_number == -1) {
     frame_number = check_page_table(page_number);
-    if (frame_number == -1) {
+    if (frame_number == -1) { // Page Fault
       // Escolhe o método de substituição com base no argumento
       frame_number = handle_page_fault(page_number);
       page_faults++; // Incrementa o contador de page faults
@@ -163,8 +165,8 @@ int main(int argc, char *argv[]) {
 
   /* Inicializa a PageTable e TLB com entradas inválidas (caso queira visualizar
    * em correct.txt todas as páginas de PageTable ou TLB) */
-  // initialize_page_table();
-  // initialize_TLB();
+  initialize_page_table();
+  initialize_TLB();
 
   // Aloca memória dinamicamente
   PhysicalMemory = new char *[NUM_FRAMES];

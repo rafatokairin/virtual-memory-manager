@@ -59,6 +59,11 @@ int handle_page_fault(int page_number) {
 
   // Lê a página do arquivo BACKING_STORE.bin
   FILE *backing_store = fopen("BACKING_STORE.bin", "rb");
+  if (!backing_store) {
+    std::cerr << "Read ERROR!" << std::endl;
+    exit(1);
+  }
+
   fseek(backing_store, page_number * PAGE_SIZE, SEEK_SET);
   fread(PhysicalMemory[frame_number], sizeof(char), PAGE_SIZE, backing_store);
   fclose(backing_store);
@@ -95,7 +100,10 @@ void translate_address(int logical_address,
   } else {
     // Atualiza a ordem de uso no LRU, se a TLB já está na memória
     if (replacement_method == "LRU" && frame_number != -1) {
-      auto it = std::find(TLB.begin(), TLB.end(), frame_number);
+      auto it = std::find_if(TLB.begin(), TLB.end(),
+                             [frame_number](const TLBEntry &entry) {
+                               return entry.frame_number == frame_number;
+                             });
       if (it != TLB.end()) {
         TLB.erase(it); // Remove o frame da posição atual
         TLB.push_back(
@@ -172,6 +180,11 @@ int main(int argc, char *argv[]) {
   PhysicalMemory = new char *[NUM_FRAMES];
   for (std::size_t i = 0; i < NUM_FRAMES; i++)
     PhysicalMemory[i] = new char[PAGE_SIZE];
+
+  if (!PhysicalMemory) {
+    std::cerr << "Alloc ERROR!" << std::endl;
+    return 1;
+  }
 
   // Processa a leitura e escrita dos arquivos .txt
   process_file(filename, replacement_method);
